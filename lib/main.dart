@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hope_sign_in/screens/addeditscreen.dart';
 
 void main() {
   runApp(new MyApp());
@@ -13,27 +14,28 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new MyHomePage(title: 'HOPE Signin'),
+      home: new ListPage(title: 'HOPE Signin'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class ListPage extends StatefulWidget {
+  ListPage({Key key, this.title}) : super(key: key);
 
   final String title;
 
   @override
-  _MyHomePageState createState() => new _MyHomePageState();
+  _ListPageState createState() => new _ListPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _ListPageState extends State<ListPage> {
   int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void _showAddEditScreen() {
+    Navigator.push(
+      context,
+      new MaterialPageRoute(builder: (context) => new AddEditScreen()),
+    );
   }
 
   @override
@@ -59,10 +61,12 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _showAddEditScreen,
         tooltip: 'Increment',
         child: new Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
+
+
