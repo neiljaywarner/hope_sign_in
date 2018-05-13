@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hope_sign_in/screens/addeditscreen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 void main() {
   runApp(new MyApp());
@@ -14,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new ListPage(title: 'HOPE Signin'),
+      home: new ListPage(title: 'HOPE Sijjgnin'),
     );
   }
 }
@@ -44,25 +46,23 @@ class _ListPageState extends State<ListPage> {
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      body: new Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have pushed the button this many times:',
-            ),
-            new Text(
-              '${_counter}',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
-      ),
+      body: new StreamBuilder(
+          stream: Firestore.instance.collection('baby').snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return const Text('Loading...');
+            return new ListView.builder(
+                itemCount: snapshot.data.documents.length,
+                padding: const EdgeInsets.only(top: 10.0),
+                itemExtent: 25.0,
+                itemBuilder: (context, index) {
+                  DocumentSnapshot ds = snapshot.data.documents[index];
+                  return new Text(" ${ds['name']} ${ds['votes']}");
+                }
+            );
+          }),
       floatingActionButton: new FloatingActionButton(
         onPressed: _showAddEditScreen,
-        tooltip: 'Increment',
+        tooltip: 'Add Volunteer',
         child: new Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );

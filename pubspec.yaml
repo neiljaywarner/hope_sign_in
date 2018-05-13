@@ -4,6 +4,8 @@ description: Hope Sign In
 dependencies:
   flutter:
     sdk: flutter
+  cloud_firestore: ^0.7.0     # new
+
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+//import 'package:firebase_database/firebase_database.dart';
+
 
 class AddEditScreen extends StatefulWidget {
   @override
   _LoginPageState createState() => new _LoginPageState();
 }
+
+//final reference = FirebaseDatabase.instance.reference().child('messages');
 
 class _LoginPageState extends State<AddEditScreen> {
   final scaffoldKey = new GlobalKey<ScaffoldState>();
