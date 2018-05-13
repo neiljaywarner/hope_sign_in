@@ -1,59 +1,105 @@
 import 'package:flutter/material.dart';
 
 class AddEditScreen extends StatefulWidget {
-  AddEditScreen({Key key, this.title}) : super(key: key);
-
-  final String title;
-
   @override
-  _AddEditScreenState createState() => new _AddEditScreenState();
+  _LoginPageState createState() => new _LoginPageState();
 }
 
-class _AddEditScreenState extends State<AddEditScreen> {
+class _LoginPageState extends State<AddEditScreen> {
+  final scaffoldKey = new GlobalKey<ScaffoldState>();
+  final formKey = new GlobalKey<FormState>();
 
-  final TextEditingController _textControllerName = new TextEditingController();
-  final TextEditingController _textControllerEmail= new TextEditingController();
+  String _name;
+  String _email;
+  String _signIn;
+  String _signOut;
+
+  void _submit() {
+    final form = formKey.currentState;
+
+    if (form.validate()) {
+      form.save();
+
+      // Email & password matched our validation rules
+      // and are saved to _email and _password fields.
+      _performSubmit();
+    }
+  }
+
+  void _performSubmit() {
+    // This is just a demo, so no actual login here.
+    final snackbar = new SnackBar(
+      content: new Text('Name: $_name, email: $_email, Signin:$_signIn'),
+    );
+
+    scaffoldKey.currentState.showSnackBar(snackbar);
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
-    var submitButton = new RaisedButton(
-      elevation: 10.0,
-      onPressed: () {
-        Navigator.pop(context);
-      },
-      child: new Text('Submit'),
-    );
     return new Scaffold(
+      key: scaffoldKey,
       appBar: new AppBar(
-        /// TODO: Change to name of volunteer when editing.
-        title: new Text("Add Volunteer"),
+        title: new Text('Add/Edit'),
       ),
-      body: new Container(
+      body: new Padding(
         padding: const EdgeInsets.all(16.0),
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: new Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            new Text(
-              'Name',
-              style: Theme.of(context).textTheme.headline,
-            ),
-            new Container(
-              padding: const EdgeInsets.symmetric(vertical: 12.0,horizontal: 0.0),
-            child: new TextField(
-              controller: _textControllerName,
-            ),
-            ),
-            new Text(
-              'Email',
-              style: Theme.of(context).textTheme.headline,
-            ),
-            submitButton,
-          ],
+        child: new Form(
+          key: formKey,
+          child: new Column(
+            children: [
+              new TextFormField(
+                decoration: new InputDecoration(labelText: 'Name'),
+                validator: (val) =>
+                !(val.length > 0) ?  'Name is empty' : null,
+                onSaved: (val) => _name= val,
+              ),
+              new TextFormField(
+                decoration: new InputDecoration(labelText: 'Email'),
+                validator: (val) =>
+                !val.contains('@') ? 'Not a valid email.' : null,
+                onSaved: (val) => _email = val,
+              ),
+              //TODO: Autofill with current time
+              new TextFormField(
+                decoration: new InputDecoration(labelText: 'Sign In'),
+                validator: (val) =>
+                val.length != 5 ? 'Please use 24 hr time HH:MM' : null,
+                onSaved: (val) => _signIn = val,
+              ),
+              //TODO: Autofill with current time
+              // TODO: Decide, should it autofill with 1 hr later in some situations
+              // TODO: Change to https://docs.flutter.io/flutter/material/showTimePicker.html
+              new TextFormField(
+                decoration: new InputDecoration(labelText: 'Sign Out (when ready)'),
+                validator: (val) =>
+                isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
+                onSaved: (val) => _signOut = val,
+              ),
+
+              new Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: new RaisedButton(
+                  elevation: 8.0,
+                  onPressed: _submit,
+                  child: new Text('Sign In'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  //todo; Make this better
+  isInvalidTime(String val) {
+    if (val.length == 5) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 }
+
