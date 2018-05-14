@@ -36,10 +36,13 @@ class _ListPageState extends State<ListPage> {
   int _counter = 0;
 
   void _showAddEditScreen() {
-    Navigator.push(
-      context,
-      new MaterialPageRoute(builder: (context) => new AddEditScreen()),
-    );
+   // Navigator.push(context, new MaterialPageRoute(builder: (context) => new AddEditScreen()),);
+    Firestore.instance.runTransaction((transaction) async {
+      // TODO: Consider if wise to use guid as reccomended. user can change id, etc.
+      Firestore.instance.collection('Entries').document("new@c2.com")
+          .setData({ 'email': "new@c2.com", 'signIn': '19:42', 'signOut': "" });
+    });
+    
   }
 
   @override
