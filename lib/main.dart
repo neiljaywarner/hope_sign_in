@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hope_sign_in/model.dart';
 import 'package:hope_sign_in/screens/addeditscreen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new ListPage(title: 'HOPE Sijjgnin'),
+      home: new ListPage(title: 'HOPE Signin (tap-signout, longpress-edit)'),
     );
   }
 }
@@ -35,8 +36,14 @@ class ListPage extends StatefulWidget {
 class _ListPageState extends State<ListPage> {
   int _counter = 0;
 
-  void _showAddEditScreen() {
-    Navigator.push(context, new MaterialPageRoute(builder: (context) => new AddEditScreen()),);
+  void _showAddScreen() {
+    Navigator.push(context,
+      new MaterialPageRoute(builder: (context) => new AddEditScreen(null)),);
+  }
+
+  void _showEditScreen(Entry entry) {
+    Navigator.push(context, new MaterialPageRoute(
+        builder: (context) => new AddEditScreen(entry)),);
   }
 
   @override
@@ -50,15 +57,15 @@ class _ListPageState extends State<ListPage> {
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const Text('Loading...');
             return new ListView.builder(
-                itemCount: snapshot.data.documents.length,
-                padding: const EdgeInsets.only(top: 10.0),
+              itemCount: snapshot.data.documents.length,
+              padding: const EdgeInsets.only(top: 10.0),
               itemExtent: 55.0,
               itemBuilder: (context, index) =>
                   _buildListItem(context, snapshot.data.documents[index]),
             );
           }),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _showAddEditScreen,
+        onPressed: _showAddScreen,
         tooltip: 'Add Volunteer',
         child: new Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
@@ -69,10 +76,13 @@ class _ListPageState extends State<ListPage> {
     String timeEntry = "";
     String signIn = document['signIn'];
     String signOut = document['signOut'];
+    String name = document['name'];
+    String email = document['email'];
     timeEntry = signIn;
     if (signOut.isNotEmpty) {
       timeEntry += "-" + signOut;
     }
+    Entry entry = Entry(document.documentID, name, email, signIn,signOut);
     return new ListTile(
       key: new ValueKey(document.documentID),
       title: new Container(
@@ -84,7 +94,7 @@ class _ListPageState extends State<ListPage> {
         child: new Row(
           children: <Widget>[
             new Expanded(
-              child: new Text(document['email']),
+              child: new Text(email),
             ),
             new Text(
               timeEntry,
@@ -92,13 +102,21 @@ class _ListPageState extends State<ListPage> {
           ],
         ),
       ),
-      onTap: () => Firestore.instance.runTransaction((transaction) async {
-        DocumentSnapshot freshSnap = await transaction.get(document.reference);
-        await transaction.update(freshSnap.reference, {'signOut': _buildNowString24HrTime()});
-      }
-      ),
+      onTap: () =>
+          Firestore.instance.runTransaction((transaction) async {
+            DocumentSnapshot freshSnap = await transaction.get(document.reference);
+            await transaction.update(
+                freshSnap.reference, {'signOut': _buildNowString24HrTime()});
+          },
+          ),
+      onLongPress: () => _showEditScreen(entry),
     );
-  }}
+  }
+} //end of class _ListPageState
+
+
+
+
 
   //TODO: move to utils function
 String _buildNowString24HrTime() {

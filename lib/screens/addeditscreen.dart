@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 //import 'package:firebase_database/firebase_database.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:hope_sign_in/model.dart';
 
 
 class AddEditScreen extends StatefulWidget {
+
+  final Entry entry;
+  AddEditScreen(this.entry);
+
   @override
   _LoginPageState createState() => new _LoginPageState();
 }
@@ -19,6 +24,10 @@ class _LoginPageState extends State<AddEditScreen> {
   String _signIn;
   String _signOut;
 
+  bool isEditing() {
+    return (widget.entry != null);
+  }
+
   void _submit() {
     final form = formKey.currentState;
 
@@ -27,30 +36,51 @@ class _LoginPageState extends State<AddEditScreen> {
 
       // Email & password matched our validation rules
       // and are saved to _email and _password fields.
-      _performSubmit();
+      if (isEditing()) {
+        _performEdit(widget.entry);
+      } else {
+        _performSubmit();
+      }
     }
   }
 
+  void _performEdit(Entry entry)  {
+    Firestore.instance.runTransaction((transaction) async {
+      await Firestore.instance.collection("Entries").document(entry.documentId).updateData(
+          { 'name': _name, 'email': _email, 'signIn': _signIn, 'signOut': _signOut }
+      );
+    });
+    Navigator.pop(context);
+  }
   void _performSubmit() {
     // This is just a demo, so no actual login here.
-    final snackbar = new SnackBar(
-      content: new Text('Name: $_name, email: $_email, Signin:$_signIn'),
-    );
 
     if (_signIn.isEmpty) {
       _signIn = _buildNowString24HrTime();
     }
-    scaffoldKey.currentState.showSnackBar(snackbar);
     Firestore.instance.runTransaction((transaction) async {
       // TODO: Consider if wise to use guid as reccomended. user can change id, etc.
-      Firestore.instance.collection('Entries').document(_email)
-          .setData({ 'email': _email, 'signIn': _signIn, 'signOut': "" });
+      await Firestore.instance.collection('Entries').document(_email)
+          .setData({ 'name': _name,'email': _email, 'signIn': _signIn, 'signOut': _signOut });
     });
     Navigator.pop(context);
   }
 
+  void _initializeDefaults() {
+    Entry entry = widget.entry;
+    if (isEditing()) {
+      _name = entry.name;
+      _email = entry.email;
+      _signIn = entry.signIn;
+      _signOut = entry.signOut;
+    } else {
+      _signOut = null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    _initializeDefaults();
     return new Scaffold(
       key: scaffoldKey,
       appBar: new AppBar(
@@ -64,12 +94,14 @@ class _LoginPageState extends State<AddEditScreen> {
             children: [
               new TextFormField(
                 decoration: new InputDecoration(labelText: 'Name'),
+                initialValue: _name,
                 validator: (val) =>
                 !(val.length > 0) ?  'Name is empty' : null,
                 onSaved: (val) => _name= val,
               ),
               new TextFormField(
                 decoration: new InputDecoration(labelText: 'Email'),
+                initialValue: _email,
                 validator: (val) =>
                 !val.contains('@') ? 'Not a valid email.' : null,
                 onSaved: (val) => _email = val,
@@ -77,6 +109,7 @@ class _LoginPageState extends State<AddEditScreen> {
               //TODO: Autofill with current time
               new TextFormField(
                 decoration: new InputDecoration(labelText: 'Sign In (leave blank for current time)'),
+                initialValue: _signIn,
                 validator: (val) =>
                   isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
                 onSaved: (val) => _signIn = val,
@@ -86,6 +119,7 @@ class _LoginPageState extends State<AddEditScreen> {
               // TODO: Change to https://docs.flutter.io/flutter/material/showTimePicker.html
               new TextFormField(
                 decoration: new InputDecoration(labelText: 'Sign Out (when ready)'),
+                initialValue: _signOut,
                 validator: (val) =>
                 isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
                 onSaved: (val) => _signOut = val,
