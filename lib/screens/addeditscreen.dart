@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 //import 'package:firebase_database/firebase_database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class AddEditScreen extends StatefulWidget {
@@ -36,7 +37,15 @@ class _LoginPageState extends State<AddEditScreen> {
       content: new Text('Name: $_name, email: $_email, Signin:$_signIn'),
     );
 
+    if (_signIn.isEmpty) {
+      _signIn = _buildNowString24HrTime();
+    }
     scaffoldKey.currentState.showSnackBar(snackbar);
+    Firestore.instance.runTransaction((transaction) async {
+      // TODO: Consider if wise to use guid as reccomended. user can change id, etc.
+      Firestore.instance.collection('Entries').document(_email)
+          .setData({ 'email': _email, 'signIn': _signIn, 'signOut': "" });
+    });
     Navigator.pop(context);
   }
 
@@ -67,9 +76,9 @@ class _LoginPageState extends State<AddEditScreen> {
               ),
               //TODO: Autofill with current time
               new TextFormField(
-                decoration: new InputDecoration(labelText: 'Sign In'),
+                decoration: new InputDecoration(labelText: 'Sign In (leave blank for current time)'),
                 validator: (val) =>
-                val.length != 5 ? 'Please use 24 hr time HH:MM' : null,
+                  isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
                 onSaved: (val) => _signIn = val,
               ),
               //TODO: Autofill with current time
@@ -107,3 +116,12 @@ class _LoginPageState extends State<AddEditScreen> {
   }
 }
 
+String _buildNowString24HrTime() {
+  TimeOfDay timeOfDay = new TimeOfDay.now();
+  int minute = timeOfDay.minute;
+  if (minute < 10) {
+    return "${timeOfDay.hour}:0${timeOfDay.minute}";
+  } else {
+    return "${timeOfDay.hour}:${timeOfDay.minute}";
+  }
+}
