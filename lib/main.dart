@@ -49,7 +49,7 @@ class _ListPageState extends State<ListPage> {
         title: new Text(widget.title),
       ),
       body: new StreamBuilder(
-          stream: Firestore.instance.collection('baby').snapshots(),
+          stream: Firestore.instance.collection('Entries').snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) return const Text('Loading...');
             return new ListView.builder(
@@ -69,6 +69,13 @@ class _ListPageState extends State<ListPage> {
   }
 
   Widget _buildListItem(BuildContext context, DocumentSnapshot document) {
+    String timeEntry = "";
+    String signIn = document['signIn'];
+    String signOut = document['signOut'];
+    timeEntry = signIn;
+    if (signOut.isNotEmpty) {
+      timeEntry += "-" + signOut;
+    }
     return new ListTile(
       key: new ValueKey(document.documentID),
       title: new Container(
@@ -80,21 +87,32 @@ class _ListPageState extends State<ListPage> {
         child: new Row(
           children: <Widget>[
             new Expanded(
-              child: new Text(document['name']),
+              child: new Text(document['email']),
             ),
             new Text(
-              document['votes'].toString(),
+              timeEntry,
             ),
           ],
         ),
       ),
       onTap: () => Firestore.instance.runTransaction((transaction) async {
-        DocumentSnapshot freshSnap =
-        await transaction.get(document.reference);
-        await transaction.update(
-            freshSnap.reference, {'votes': freshSnap['votes'] + 1});
-      }),
+        DocumentSnapshot freshSnap = await transaction.get(document.reference);
+        await transaction.update(freshSnap.reference, {'signOut': _buildNowString24HrTime()});
+      }
+      ),
     );
   }}
 
+String _buildNowString24HrTime() {
+  TimeOfDay timeOfDay = new TimeOfDay.now();
+  int minute = timeOfDay.minute;
+  if (minute < 10) {
+    return "${timeOfDay.hour}:0${timeOfDay.minute}";
+  } else {
+    return "${timeOfDay.hour}:${timeOfDay.minute}";
+  }
+}
 
+/*
+
+ */
