@@ -105,21 +105,14 @@ class _ListPageState extends State<ListPage> {
           ],
         ),
       ),
-      onTap: () =>
-          Firestore.instance.runTransaction((transaction) async {
-            DocumentSnapshot freshSnap = await transaction.get(document.reference);
-            await transaction.update(
-                freshSnap.reference, {'signOut': _buildNowString24HrTime()});
-          },
-          ),
-      onLongPress: () => _showEditScreen(entry),
+      onTap: () => _showEditScreen(entry),
     );
   }
 } //end of class _ListPageState
 
 
 
-
+//TODO: offline mode in case internet access issue
 
   //TODO: move to utils function
 String _buildNowString24HrTime() {
