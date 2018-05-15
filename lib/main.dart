@@ -28,7 +28,6 @@ class ListPage extends StatefulWidget {
   final String title;
 
 
-
   @override
   _ListPageState createState() => new _ListPageState();
 }
@@ -78,11 +77,15 @@ class _ListPageState extends State<ListPage> {
     String signOut = document['signOut'];
     String name = document['name'];
     String email = document['email'];
+    String phone = document['phone'];
+    if (phone==null) {
+      phone="";
+    }
     timeEntry = signIn;
     if (signOut.isNotEmpty) {
       timeEntry += "-" + signOut;
     }
-    Entry entry = Entry(document.documentID, name, email, signIn,signOut);
+    Entry entry = Entry(document.documentID, name, phone, email, signIn,signOut);
     return new ListTile(
       key: new ValueKey(document.documentID),
       title: new Container(

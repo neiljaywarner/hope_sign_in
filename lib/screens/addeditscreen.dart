@@ -21,8 +21,10 @@ class _LoginPageState extends State<AddEditScreen> {
 
   String _name;
   String _email;
-  String _signIn;
-  String _signOut;
+  String _signIn = "";
+  String _signOut = "";
+  String _phone;
+  String _title = "";
 
   bool isEditing() {
     return (widget.entry != null);
@@ -47,7 +49,7 @@ class _LoginPageState extends State<AddEditScreen> {
   void _performEdit(Entry entry)  {
     Firestore.instance.runTransaction((transaction) async {
       await Firestore.instance.collection("Entries").document(entry.documentId).updateData(
-          { 'name': _name, 'email': _email, 'signIn': _signIn, 'signOut': _signOut }
+          { 'name': _name, 'email': _email, 'phone': _phone, 'signIn': _signIn, 'signOut': _signOut }
       );
     });
     Navigator.pop(context);
@@ -60,8 +62,9 @@ class _LoginPageState extends State<AddEditScreen> {
     }
     Firestore.instance.runTransaction((transaction) async {
       // TODO: Consider if wise to use guid as reccomended. user can change id, etc.
-      await Firestore.instance.collection('Entries').document(_email)
-          .setData({ 'name': _name,'email': _email, 'signIn': _signIn, 'signOut': _signOut });
+      String documentId = _name + _phone;
+      await Firestore.instance.collection('Entries').document(documentId)
+          .setData({ 'name': _name,'email': _email, 'phone': _phone, 'signIn': _signIn, 'signOut': _signOut });
     });
     Navigator.pop(context);
   }
@@ -73,8 +76,30 @@ class _LoginPageState extends State<AddEditScreen> {
       _email = entry.email;
       _signIn = entry.signIn;
       _signOut = entry.signOut;
+      _phone = entry.phone;
+      _title = "Edit/Signout";
+
     } else {
-      _signOut = null;
+      _title = "Add volunteer";
+    }
+  }
+
+  bool isValidPhone(String val) {
+    //TODO: decent phone number autoformat someday might be a nice touch...
+    // see https://github.com/flutter/flutter/blob/master/examples/flutter_gallery/lib/demo/material/text_form_field_demo.dart
+    // as a start
+
+    return val.length > 7
+  }
+
+  bool isValidEmail(String val) {
+    if (val.isEmpty) {
+      return true;
+    }
+    if (val.contains("@")) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -84,13 +109,13 @@ class _LoginPageState extends State<AddEditScreen> {
     return new Scaffold(
       key: scaffoldKey,
       appBar: new AppBar(
-        title: new Text('Add/Edit'),
+        title: new Text(_title),
       ),
       body: new Padding(
         padding: const EdgeInsets.all(16.0),
         child: new Form(
           key: formKey,
-          child: new Column(
+          child: new ListView(
             children: [
               new TextFormField(
                 decoration: new InputDecoration(labelText: 'Name'),
@@ -100,15 +125,24 @@ class _LoginPageState extends State<AddEditScreen> {
                 onSaved: (val) => _name= val,
               ),
               new TextFormField(
+                keyboardType: TextInputType.emailAddress,
                 decoration: new InputDecoration(labelText: 'Email'),
                 initialValue: _email,
                 validator: (val) =>
-                !val.contains('@') ? 'Not a valid email.' : null,
+                !isValidEmail(val) ? 'Not a valid email.' : null,
                 onSaved: (val) => _email = val,
+              ),
+              new TextFormField(
+                keyboardType: TextInputType.phone,
+                decoration: new InputDecoration(labelText: 'Phone'),
+                initialValue: _phone,
+                validator: (val) =>
+                !isValidPhone(val) ? 'Not a valid phone number' : null,
+                onSaved: (val) => _phone = val,
               ),
               //TODO: Autofill with current time
               new TextFormField(
-                decoration: new InputDecoration(labelText: 'Sign In (leave blank for current time)'),
+                decoration: new InputDecoration(labelText: 'Sign In'),
                 initialValue: _signIn,
                 validator: (val) =>
                   isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
@@ -130,7 +164,7 @@ class _LoginPageState extends State<AddEditScreen> {
                 child: new RaisedButton(
                   elevation: 8.0,
                   onPressed: _submit,
-                  child: new Text('Sign In'),
+                  child: new Text('Submit'),
                 ),
               ),
             ],
@@ -142,9 +176,18 @@ class _LoginPageState extends State<AddEditScreen> {
 
   //todo; Make this better
   isInvalidTime(String val) {
-    if (val.length == 5) {
+    //TODO: real time validation, eg don't allow 44:77
+    // actually ,just pick from time picker
+    if (val.length > 5) {
       return false;
-    } else {
+    }
+
+    if (val.length == 5) {
+      return true;
+    }
+
+    //eg 9:22; main case
+    if (val.length == 4) {
       return true;
     }
   }
@@ -153,6 +196,7 @@ class _LoginPageState extends State<AddEditScreen> {
 String _buildNowString24HrTime() {
   TimeOfDay timeOfDay = new TimeOfDay.now();
   int minute = timeOfDay.minute;
+  int hour = timeOfDay.hour;
   if (minute < 10) {
     return "${timeOfDay.hour}:0${timeOfDay.minute}";
   } else {
