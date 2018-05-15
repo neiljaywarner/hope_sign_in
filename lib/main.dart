@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: new ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: new ListPage(title: 'HOPE Signin (tap-signout, longpress-edit)'),
+      home: new ListPage(title: 'HOPE Signin'),
     );
   }
 }
@@ -97,7 +97,7 @@ class _ListPageState extends State<ListPage> {
         child: new Row(
           children: <Widget>[
             new Expanded(
-              child: new Text(email),
+              child: new Text(name),
             ),
             new Text(
               timeEntry,
