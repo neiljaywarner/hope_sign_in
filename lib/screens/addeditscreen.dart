@@ -145,7 +145,7 @@ class _LoginPageState extends State<AddEditScreen> {
                 decoration: new InputDecoration(labelText: 'Sign In'),
                 initialValue: _signIn,
                 validator: (val) =>
-                  isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
+                  isInvalidTime(val.trim())  ? 'Please use 24 hr time HH:MM' : null,
                 onSaved: (val) => _signIn = val,
               ),
               //TODO: Autofill with current time
@@ -155,7 +155,7 @@ class _LoginPageState extends State<AddEditScreen> {
                 decoration: new InputDecoration(labelText: 'Sign Out (when ready)'),
                 initialValue: _signOut,
                 validator: (val) =>
-                isInvalidTime(val) && (val.length >0) ? 'Please use 24 hr time HH:MM' : null,
+                isInvalidTime(val.trim())  ? 'Please use 24 hr time HH:MM' : null,
                 onSaved: (val) => _signOut = val,
               ),
 
@@ -178,18 +178,24 @@ class _LoginPageState extends State<AddEditScreen> {
   isInvalidTime(String val) {
     //TODO: real time validation, eg don't allow 44:77
     // actually ,just pick from time picker
-    if (val.length > 5) {
+
+    // see when required and not
+    if (val.length == 0) {
       return false;
+    }
+    if (val.length > 5) {
+      return true;
     }
 
     if (val.length == 5) {
-      return true;
+      return false;
     }
 
     //eg 9:22; main case
     if (val.length == 4) {
-      return true;
+      return false;
     }
+
   }
 }
 
