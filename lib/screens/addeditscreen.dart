@@ -89,7 +89,7 @@ class _LoginPageState extends State<AddEditScreen> {
     // see https://github.com/flutter/flutter/blob/master/examples/flutter_gallery/lib/demo/material/text_form_field_demo.dart
     // as a start
 
-    return val.length > 7
+    return val.length > 7;
   }
 
   bool isValidEmail(String val) {
